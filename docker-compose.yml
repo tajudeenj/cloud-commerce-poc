@@ -1,0 +1,27 @@
+# Local / demo stack: PostgreSQL 18 + the app (runs migrations and seed on start).
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: cloudpoc
+      POSTGRES_PASSWORD: cloudpoc
+      POSTGRES_DB: cloudpoc
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudpoc"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://cloudpoc:cloudpoc@db:5432/cloudpoc
+    command: sh -c "node --import tsx scripts/migrate.ts && node --import tsx scripts/seed.ts && node server.js"
+    ports: ["3000:3000"]
+
+volumes:
+  pgdata:

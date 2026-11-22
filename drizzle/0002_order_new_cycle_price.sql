@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "new_cycle_price_fils" bigint;
